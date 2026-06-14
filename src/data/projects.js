@@ -24,7 +24,7 @@ export const projects = [
     tags: ["SaaS", "Web"],
     techs: ["Next.js", "React", "Tailwind CSS", "Supabase"],
     image: "/logoVenta.png",
-    webUrl: "https://saa-s-six-fawn.vercel.app/",
+    webUrl: "https://www.ventapulse.com/",
     detail:
       "VentaPulse es un SaaS revolucionario diseñado para llevar la gestión empresarial y las ventas al siguiente nivel, automatizando procesos y brindando una experiencia premium.",
     highlights: [
@@ -71,23 +71,4 @@ export const projects = [
     ],
   },
 
-  {
-    id: 6,
-    name: "Inversiones Duvan",
-    desc: "Catálogo con sus comidas, menús y más.",
-    tags: ["Catálogo"],
-    techs: ["React", "Tailwind CSS", "Vite"],
-    image: "/logoduvan.webp",
-    catalogUrl: "https://duvan-premium-alnp.vercel.app/",
-    webUrl: "https://duvan-premium-alnp.vercel.app/",
-    githubUrl: "https://github.com/lauhernandez1818-dot/duvan-premium",
-    detail:
-      "Catálogo tipo link-in-bio para Inversiones Duvan. Un solo enlace con todas las comidas, menús y opciones para que los clientes pidan fácil desde el celular.",
-    highlights: [
-      "Un solo enlace para compartir",
-      "Catálogo de comidas y menús",
-      "Enlaces a WhatsApp o pedidos",
-      "Ideal para redes y negocios locales",
-    ],
-  },
 ];

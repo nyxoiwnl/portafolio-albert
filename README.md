@@ -16,7 +16,6 @@ Pensado para mostrar trabajos en plataformas como **Fiverr**, redes sociales y C
 - **JJ Logistic** – Página web corporativa para empresa de logística y transporte.
 - **SafePet** – Sitio web para servicios de cuidado y bienestar de mascotas.
 - **Inversiones Duvan (Web)** – Página web para negocio de almuerzos al mayor.
-- **Inversiones Duvan (Catálogo)** – Catálogo con sus comidas, menús y más.
 
 ## Cómo correr el proyecto
 
