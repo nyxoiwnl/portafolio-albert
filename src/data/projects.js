@@ -7,7 +7,7 @@ export const projects = [
     techs: ["React", "Tailwind CSS", "Vite"],
     image: "/logoduvan.webp",
     webUrl: "https://duvan.com.ve/",
-    githubUrl: "https://github.com/lauhernandez1818-dot/duvan-premium",
+    githubUrl: "https://github.com/nyxoiwnl/duvan-premium",
     detail:
       "Página web para negocio de almuerzos al mayor. Presenta el negocio, menús y opciones de pedido para empresas y clientes frecuentes.",
     highlights: [
@@ -42,7 +42,7 @@ export const projects = [
     techs: ["React", "Vite", "Tailwind CSS"],
     image: "/logologistics.webp",
     webUrl: "https://jj-logistic.vercel.app/",
-    githubUrl: "https://github.com/lauhernandez1818-dot/JJ-LOGISTIC",
+    githubUrl: "https://github.com/nyxoiwnl/JJ-LOGISTIC",
     detail:
       "Sitio institucional para una empresa de logística y transporte. Presenta servicios, flota y contacto de forma clara y profesional para captar clientes del sector.",
     highlights: [
@@ -60,7 +60,7 @@ export const projects = [
     techs: ["React", "Vite", "Tailwind CSS", "Framer Motion"],
     image: "/logosafepet.webp",
     webUrl: "https://safepet2021.com/",
-    githubUrl: "https://github.com/lauhernandez1818-dot/Safepet1",
+    githubUrl: "https://github.com/nyxoiwnl/Safepet1",
     detail:
       "Web para negocio de veterinaria y cuidado de mascotas. Comunica servicios, confianza y cercanía con los dueños de mascotas en la zona.",
     highlights: [
@@ -70,5 +70,4 @@ export const projects = [
       "Enfoque en conversión de clientes",
     ],
   },
-
 ];

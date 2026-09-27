@@ -1,11 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import Header from "./components/Header";
 import ScrollProgress from "./components/ScrollProgress";
 import BackToTop from "./components/BackToTop";
 import Hero from "./components/Hero";
 import Projects from "./components/Projects";
+import Skills from "./components/Skills";
 import About from "./components/About";
+import Testimonials from "./components/Testimonials";
 import Contact from "./components/Contact";
 import LoadingScreen from "./components/LoadingScreen";
 
@@ -25,7 +27,9 @@ export default function App() {
           <main>
             <Hero />
             <Projects />
+            <Skills />
             <About />
+            <Testimonials />
             <Contact />
           </main>
           <footer className="py-10 px-4 sm:px-6 border-t border-white/5 relative overflow-hidden">

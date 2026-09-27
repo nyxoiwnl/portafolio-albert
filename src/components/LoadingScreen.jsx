@@ -1,139 +1,152 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { useIsMobile } from "../hooks/useIsMobile";
-
-const word = "Bienvenido";
-
-const funMessages = [
-  "Cargando café virtual...",
-  "Compilando genialidad...",
-  "Subiendo al servidor del sabor...",
-  "Calentando motores...",
-];
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 export default function LoadingScreen({ onComplete }) {
-  const [progress, setProgress] = useState(0);
-  const [msgIndex, setMsgIndex] = useState(0);
-  const prefersReducedMotion = useReducedMotion();
   const isMobile = useIsMobile();
+  const prefersReducedMotion = useReducedMotion();
+  
+  const [progress, setProgress] = useState(0);
+  const [messageIndex, setMessageIndex] = useState(0);
+  const [isExiting, setIsExiting] = useState(false);
+  
+  const messages = [
+    'Preparando la experiencia...',
+    'Cargando proyectos...',
+    'Optimizando rendimiento...',
+    'Casi listo...'
+  ];
+
+  const duration = isMobile ? 1500 : 2200;
+  const particleCount = isMobile ? 6 : 15;
+
+  // Generate static particle styles to avoid re-renders
+  const particles = useRef([...Array(particleCount)].map(() => ({
+    size: Math.random() * 4 + 2,
+    left: Math.random() * 100,
+    top: Math.random() * 100,
+    animationDuration: Math.random() * 3 + 2,
+    animationDelay: Math.random() * 2,
+  }))).current;
 
   useEffect(() => {
-    const duration = prefersReducedMotion || isMobile ? 1800 : 2500;
-    const interval = 40;
-    const step = (100 / duration) * interval;
-    let current = 0;
+    let start = Date.now();
+    let animationFrame;
 
-    const timer = setInterval(() => {
-      current += step;
-      if (current >= 100) {
-        setProgress(100);
-        clearInterval(timer);
-        setTimeout(onComplete, 500);
+    const animateProgress = () => {
+      const now = Date.now();
+      const elapsed = now - start;
+      const currentProgress = Math.min((elapsed / duration) * 100, 100);
+      
+      setProgress(currentProgress);
+
+      if (currentProgress < 25) setMessageIndex(0);
+      else if (currentProgress < 50) setMessageIndex(1);
+      else if (currentProgress < 75) setMessageIndex(2);
+      else setMessageIndex(3);
+
+      if (elapsed < duration) {
+        animationFrame = requestAnimationFrame(animateProgress);
       } else {
-        setProgress(Math.min(current, 100));
+        setIsExiting(true);
+        setTimeout(() => {
+          onComplete();
+        }, 400);
       }
-    }, interval);
-
-    // Rotar mensajes
-    const msgTimer = setInterval(() => {
-      setMsgIndex((i) => (i + 1) % funMessages.length);
-    }, 600);
-
-    return () => {
-      clearInterval(timer);
-      clearInterval(msgTimer);
     };
-  }, [onComplete]);
+
+    animationFrame = requestAnimationFrame(animateProgress);
+
+    return () => cancelAnimationFrame(animationFrame);
+  }, [duration, onComplete]);
 
   return (
-    <motion.div
-      initial={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
-      className="fixed inset-0 z-[100] bg-background flex flex-col items-center justify-center px-6 overflow-hidden"
-    >
-      {/* Fondo */}
-      <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-purple/5 to-cyan/10 pointer-events-none" />
-      <motion.div
-        className="absolute top-1/4 right-1/4 w-72 h-72 rounded-full blur-[100px] pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(59,130,246,0.2), transparent)" }}
-        animate={
-          prefersReducedMotion || isMobile
-            ? { opacity: 0.4 }
-            : { scale: [1, 1.2, 1] }
+    <>
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes customFloat {
+          0% { transform: translateY(0px) translateX(0px); opacity: 0.3; }
+          100% { transform: translateY(-20px) translateX(10px); opacity: 0.8; }
         }
-        transition={{ duration: 3, repeat: Infinity }}
-      />
-
-      {/* Letras */}
-      <div className="relative inline-block">
-        <h1 className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight select-none flex">
-          {word.split("").map((letter, i) => (
-            <motion.span
-              key={i}
-              initial={{ opacity: 0, y: -30, rotate: -15, scale: 0.4 }}
-              animate={{
-                opacity: 1,
-                y: 0,
-                rotate: 0,
-                scale: 1,
-              }}
-              transition={{
-                duration: 0.5,
-                delay: i * 0.09,
-                ease: [0.34, 1.56, 0.64, 1],
-              }}
-              whileHover={{
-                y: -8,
-                scale: 1.2,
-                rotate: [0, -5, 5, 0],
-                transition: { duration: 0.3 },
-              }}
-              className="inline-block gradient-text cursor-default"
-            >
-              {letter}
-            </motion.span>
-          ))}
-        </h1>
-
-        {/* Barra = subrayado */}
-        <div className="relative mt-3 h-[3px] w-full bg-surface/50 rounded-full overflow-hidden">
+      `}} />
+      <AnimatePresence>
+        {!isExiting && (
           <motion.div
-            className="absolute left-0 top-0 h-full w-full bg-gradient-to-r from-accent via-cyan to-purple rounded-full origin-left"
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: progress / 100 }}
-            transition={{ duration: 0.04 }}
-            style={{ boxShadow: "0 0 25px rgba(59,130,246,0.6)" }}
-          />
-        </div>
-      </div>
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#070711] overflow-hidden"
+            style={{ contain: 'strict' }}
+            initial={{ opacity: 1 }}
+            exit={{ 
+              opacity: 0,
+              scale: 1.1,
+              transition: { duration: 0.4, ease: 'easeInOut' }
+            }}
+          >
+            {/* Particles */}
+            <div className="absolute inset-0 pointer-events-none" style={{ willChange: 'transform' }}>
+              {particles.map((p, i) => (
+                <div
+                  key={i}
+                  className="absolute rounded-full bg-indigo-500/30"
+                  style={{
+                    width: p.size,
+                    height: p.size,
+                    left: `${p.left}%`,
+                    top: `${p.top}%`,
+                    animation: prefersReducedMotion ? 'none' : `customFloat ${p.animationDuration}s ease-in-out infinite alternate`,
+                    animationDelay: `${p.animationDelay}s`,
+                  }}
+                />
+              ))}
+            </div>
 
-      {/* Porcentaje + mensaje rotativo */}
-      <div className="mt-8 flex flex-col items-center gap-2">
-        <motion.span
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="text-2xl font-black gradient-text tabular-nums"
-        >
-          {Math.round(progress)}%
-        </motion.span>
+            {/* Main Content */}
+            <div className="relative z-10 flex flex-col items-center w-full max-w-sm px-8">
+              {/* Logo */}
+              <motion.div
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ 
+                  type: 'spring', 
+                  damping: 12, 
+                  stiffness: 100,
+                  duration: prefersReducedMotion ? 0 : 0.5 
+                }}
+                className="text-6xl md:text-8xl font-black mb-12 tracking-tighter"
+              >
+                <span className="bg-gradient-to-br from-indigo-400 via-cyan-400 to-teal-400 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(56,189,248,0.5)]">
+                  AR
+                </span>
+              </motion.div>
 
-        <div className="h-6 overflow-hidden">
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={msgIndex}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.25 }}
-              className="text-xs text-text-secondary/60 text-center"
-            >
-              {funMessages[msgIndex]}
-            </motion.p>
-          </AnimatePresence>
-        </div>
-      </div>
-    </motion.div>
+              {/* Progress Bar Container */}
+              <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden mb-4 relative" style={{ willChange: 'transform' }}>
+                <div 
+                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 to-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.6)] rounded-full"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+
+              {/* Percentage & Message */}
+              <div className="flex justify-between items-center w-full text-sm font-medium text-slate-400">
+                <div className="relative flex-1 overflow-hidden h-5">
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={messageIndex}
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute left-0 truncate pr-4"
+                    >
+                      {messages[messageIndex]}
+                    </motion.span>
+                  </AnimatePresence>
+                </div>
+                <span className="tabular-nums text-cyan-400 ml-4 font-bold">{Math.round(progress)}%</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

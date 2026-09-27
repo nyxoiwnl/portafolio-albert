@@ -1,159 +1,168 @@
-import { useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
-import { useIsMobile } from "../hooks/useIsMobile";
-
-const tagStyle = (tag) => {
-  if (tag === "Catálogo") return "bg-cyan-500/15 text-cyan-400 border-cyan-500/30";
-  if (tag === "Web") return "bg-blue-500/15  text-blue-400  border-blue-500/30";
-  return "bg-violet-500/15 text-violet-400 border-violet-500/30";
-};
+import { useState, useRef } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 export default function ProjectCard({ project, index = 0, onSelect }) {
-  const [hovered, setHovered] = useState(false);
-  const prefersReducedMotion = useReducedMotion();
   const isMobile = useIsMobile();
-  const fx = !(prefersReducedMotion || isMobile);
+  const shouldReduceMotion = useReducedMotion();
+  const cardRef = useRef(null);
+  
+  const [rotateX, setRotateX] = useState(0);
+  const [rotateY, setRotateY] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
 
-  const transition = isMobile
-    ? { duration: 0.3, ease: "easeOut" } // tween-like for mobile
-    : { duration: 0.6, ease: [0.22, 1, 0.36, 1] }; // spring-like for desktop
+  const handleMouseMove = (e) => {
+    if (isMobile || shouldReduceMotion || !cardRef.current) return;
+    
+    const card = cardRef.current;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    
+    const rotateXValue = ((y - centerY) / centerY) * -10;
+    const rotateYValue = ((x - centerX) / centerX) * 10;
+    
+    setRotateX(rotateXValue);
+    setRotateY(rotateYValue);
+  };
+
+  const handleMouseLeave = () => {
+    if (isMobile || shouldReduceMotion) return;
+    setRotateX(0);
+    setRotateY(0);
+    setIsHovered(false);
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        duration: 0.6,
+        ease: [0.22, 1, 0.36, 1]
+      }
+    }
+  };
+
+  const getTagColor = (tag) => {
+    const lowerTag = tag?.toLowerCase() || '';
+    if (lowerTag.includes('web')) return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20';
+    if (lowerTag.includes('saas')) return 'bg-violet-500/10 text-violet-400 border-violet-500/20';
+    if (lowerTag.includes('catálogo') || lowerTag.includes('catalogo')) return 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20';
+    return 'bg-white/5 text-white/70 border-white/10';
+  };
 
   return (
     <motion.article
-      variants={{
-        hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 50 },
-        show: { opacity: 1, y: 0, transition },
-      }}
-      className="group relative will-change-transform"
-      onHoverStart={fx ? () => setHovered(true) : undefined}
-      onHoverEnd={fx ? () => setHovered(false) : undefined}
+      variants={itemVariants}
+      className="relative group h-full"
+      style={{ perspective: 1000 }}
     >
       <motion.button
         type="button"
-        onClick={onSelect}
-        whileHover={fx ? { y: -10 } : undefined}
-        whileTap={{ scale: 0.975 }}
-        className="w-full text-left block rounded-2xl overflow-hidden cursor-pointer relative"
-        style={{
-          background: "linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%)",
-          border: isMobile ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(255,255,255,0.07)",
-          boxShadow: hovered && !isMobile && !prefersReducedMotion
-            ? "0 20px 60px -12px rgba(99,102,241,0.25), 0 0 0 1px rgba(99,102,241,0.2)"
-            : isMobile ? "none" : "0 4px 24px -6px rgba(0,0,0,0.4)",
-          transition: "box-shadow 0.4s ease, border 0.4s ease",
+        ref={cardRef}
+        onMouseMove={handleMouseMove}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={handleMouseLeave}
+        onClick={() => onSelect(project)}
+        animate={{
+          rotateX: isMobile ? 0 : rotateX,
+          rotateY: isMobile ? 0 : rotateY,
         }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        className={`
+          h-full w-full rounded-2xl overflow-hidden text-left
+          bg-[#070711]/40 border border-white/[0.05]
+          backdrop-blur-md shadow-xl
+          relative flex flex-col
+          transition-colors duration-300
+          hover:bg-[#070711]/60
+        `}
       >
-        {/* ── IMAGE AREA ── */}
-        <div 
-          className={`relative aspect-video overflow-hidden flex items-center justify-center transition-all duration-500 ${project.isChatbot ? 'p-2' : 'p-8'}`}
-          style={{ background: "linear-gradient(150deg, #0d0d22 0%, #080814 100%)" }}
-        >
-          {/* animated background orb */}
-          <motion.div
-            className="absolute inset-0 pointer-events-none"
-            animate={fx && hovered ? { opacity: 1 } : { opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            style={{
-              background: "radial-gradient(ellipse 80% 80% at 50% 50%, rgba(99,102,241,0.15) 0%, transparent 70%)",
-            }}
-          />
-
-          {/* subtle dot grid */}
-          <div
-            className="absolute inset-0 opacity-[0.035] pointer-events-none"
-            style={{
-              backgroundImage: "radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)",
-              backgroundSize: "24px 24px",
-            }}
-          />
-
-          {/* shine sweep on hover */}
-          {!prefersReducedMotion && (
-            <motion.div
-              className="absolute inset-0 pointer-events-none -skew-x-12"
-              style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)" }}
-              initial={{ x: "-120%" }}
-              animate={fx && hovered ? { x: "220%" } : { x: "-120%" }}
-              transition={{ duration: 0.55, ease: "easeInOut" }}
-            />
-          )}
-
-          {/* project logo */}
-          <motion.img
-            src={project.image}
-            alt={`Logo ${project.name}`}
-            loading="lazy"
-            decoding="async"
-            className={`relative z-10 transition-all duration-500 ${project.isChatbot ? 'w-full h-full object-cover' : 'w-4/5 h-4/5 object-contain'}`}
-            animate={fx && hovered && !prefersReducedMotion
-              ? { scale: project.isChatbot ? 1.05 : 1.1, filter: project.isChatbot ? "none" : "drop-shadow(0 0 28px rgba(99,102,241,0.55))" }
-              : { scale: 1, filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.5))" }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          />
-
-          {/* bottom overlay + CTA */}
-          <motion.div
-            className="absolute inset-x-0 bottom-0 h-2/3 pointer-events-none"
-            style={{ background: "linear-gradient(to top, rgba(8,8,20,0.9), transparent)" }}
-            animate={{ opacity: fx && hovered ? 1 : 0 }}
-            transition={{ duration: 0.3 }}
-          />
-          <motion.span
-            className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-white pointer-events-none"
-            style={{
-              background: "linear-gradient(135deg, #6366f1, #22d3ee)",
-              boxShadow: "0 4px 20px rgba(99,102,241,0.4)",
-            }}
-            animate={{ opacity: fx && hovered ? 1 : 0, y: fx && hovered && !prefersReducedMotion ? 0 : 8 }}
-            transition={{ duration: 0.25 }}
-          >
-            Ver detalles
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-            </svg>
-          </motion.span>
+        {/* Animated Gradient Border (Shimmer) */}
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-2xl overflow-hidden">
+          <div className="absolute inset-[-50%] bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,#6366f1_25%,#22D3EE_50%,#8B5CF6_75%,transparent_100%)] animate-[spin_4s_linear_infinite] opacity-30" />
+          <div className="absolute inset-[1px] bg-[#070711] rounded-2xl z-0" />
         </div>
 
-        {/* ── INFO AREA ── */}
-        <div
-          className="px-5 py-4 sm:px-6 sm:py-5 space-y-3"
-          style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
+        {/* Shine Sweep Effect */}
+        <div 
+          className="absolute inset-0 z-20 pointer-events-none overflow-hidden rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
         >
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <h3 className="text-base sm:text-lg font-bold text-white/90 group-hover:text-white transition-colors duration-300 truncate leading-tight">
-                {project.name}
-              </h3>
-              <p className="mt-1 text-white/40 text-xs sm:text-sm line-clamp-2 leading-relaxed">
-                {project.desc}
-              </p>
-            </div>
+          <motion.div
+            initial={{ x: '-100%', opacity: 0 }}
+            animate={isHovered ? { x: '200%', opacity: 0.15 } : { x: '-100%', opacity: 0 }}
+            transition={{ duration: 1.2, ease: "easeInOut" }}
+            className="w-1/2 h-full bg-gradient-to-r from-transparent via-white to-transparent skew-x-[-20deg]"
+          />
+        </div>
 
-            {/* expand icon */}
-            <motion.div
-              className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-white/40"
-              animate={fx && hovered
-                ? { background: "rgba(99,102,241,0.25)", borderColor: "rgba(99,102,241,0.5)", color: "#a5b4fc" }
-                : { background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)" }}
-              transition={{ duration: 0.25 }}
-              style={{ border: "1px solid rgba(255,255,255,0.08)" }}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </motion.div>
+        <div className="relative z-10 flex flex-col h-full bg-[#070711]/50 backdrop-blur-sm rounded-2xl overflow-hidden">
+          {/* Image Area */}
+          <div className="relative aspect-video overflow-hidden bg-white/5">
+            <motion.img
+              src={project.image}
+              alt={project.name}
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            />
+            {/* Tags overlay */}
+            <div className="absolute top-3 left-3 flex flex-wrap gap-2 z-20">
+              {project.tags?.map((tag, i) => (
+                <span 
+                  key={i} 
+                  className={`text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded border backdrop-blur-md ${getTagColor(tag)}`}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+            
+            {/* 'Ver detalles' hover overlay */}
+            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6 z-20">
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={isHovered ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
+                transition={{ duration: 0.3, delay: 0.1 }}
+                className="px-6 py-2 bg-indigo-500 hover:bg-indigo-600 text-white font-medium rounded-full text-sm flex items-center gap-2 transform transition-colors"
+              >
+                Ver detalles
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </motion.div>
+            </div>
           </div>
 
-          {/* tags */}
-          <div className="flex flex-wrap gap-1.5">
-            {project.tags.map((tag) => (
-              <span
-                key={tag}
-                className={`px-2.5 py-1 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-widest rounded-full border ${tagStyle(tag)}`}
-              >
-                {tag}
-              </span>
-            ))}
+          {/* Info Area */}
+          <div className="p-5 flex-1 flex flex-col">
+            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-indigo-400 transition-colors">
+              {project.name}
+            </h3>
+            
+            <p className="text-white/60 text-sm line-clamp-2 mb-4 flex-1">
+              {project.desc}
+            </p>
+
+            {/* Tech Stack Pills */}
+            <div className="flex flex-wrap gap-2 mt-auto">
+              {project.techs?.slice(0, 4).map((tech, i) => (
+                <span 
+                  key={i} 
+                  className="text-xs px-2.5 py-1 rounded-full bg-white/5 text-white/70 border border-white/10"
+                >
+                  {tech}
+                </span>
+              ))}
+              {project.techs?.length > 4 && (
+                <span className="text-xs px-2.5 py-1 rounded-full bg-white/5 text-white/50 border border-white/10">
+                  +{project.techs.length - 4}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </motion.button>
